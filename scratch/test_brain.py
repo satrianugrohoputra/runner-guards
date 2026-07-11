@@ -1,12 +1,23 @@
 import sys
 import os
+import tomllib
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import brain
 
-gemini_key = "AIzaSyDyKqWRtz3gY8HvMdlvkWw5l37_lfccF9w"
-fireworks_key = "fw_XZzVvP94XHptZQHHnHkonU"
+# 1. Load API Keys dari secrets.toml
+try:
+    with open("secrets.toml", "rb") as f:
+        secrets = tomllib.load(f)
+    gemini_key = secrets["api_keys"]["GEMINI_API_KEY"]
+    fireworks_key = secrets["api_keys"]["FIREWORKS_API_KEY"]
+except FileNotFoundError:
+    print("Error: File secrets.toml tidak ditemukan!")
+    sys.exit(1)
+except KeyError:
+    print("Error: Struktur [api_keys] atau key di dalam secrets.toml tidak sesuai!")
+    sys.exit(1)
 
 metrics_context = {
     'acwr': 1.97,
