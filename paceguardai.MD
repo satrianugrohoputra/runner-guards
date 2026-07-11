@@ -10,25 +10,23 @@ PaceGuard AI is a next-generation **AI Running Coach** designed to predict injur
 
 ---
 
-## 🧠 2. AI Architecture & Routing (Local + Cloud)
-This project demonstrates computational efficiency by partitioning workloads between local models (AMD) and Cloud APIs (Fireworks/Gemini).
+## 🧠 2. AI Architecture & Routing (Hybrid Cloud Model Optimization)
+This project demonstrates computational and cost efficiency by routing queries intelligently between Lite and Pro Cloud models (Fireworks DeepSeek V4 and Gemini).
 
 ```mermaid
 graph TD
     A[USER INPUT: Running Data & Question] --> B{QUERY CLASSIFIER}
-    B -->|Deterministic/Simple| C[Local Inference]
-    B -->|Complex/Analytical| D[Cloud LLM API]
+    B -->|Deterministic/Simple Metrics| C[Zero-Token Bypass]
+    B -->|Simple Questions / Stats| D[Cloud Lite LLM]
+    B -->|Complex / Analytical Coaching| E[Cloud Pro LLM]
     
-    C --> E[Calculate ACWR, Mileage, Pace]
-    C --> F[Gemma Local: Basic Questions]
+    C --> F[Direct Math calculation: ACWR, Growth, HR Drift]
+    D --> G[Fireworks DeepSeek V4 Flash / Gemini 3.1 Flash-Lite]
+    E --> H[Fireworks DeepSeek V4 Pro / Gemini 3.5 Flash]
     
-    D --> G[Fireworks.ai Llama-3: Deep Analysis]
-    D --> H[Gemini: Personalized Recommendation]
-    
-    E --> I[ML Model: Risk Score & Injury Type]
+    F --> I[ML Model: Risk Score & Injury Type]
     
     I --> J[OUTPUT LAYER]
-    F --> J
     G --> J
     H --> J
     
@@ -37,8 +35,8 @@ graph TD
 
 ### **"Zero-Token Decision" Mechanism**
 1.  **Rule-based / Pure Calculation:** If a user asks *"What is my total distance this week?"*, the system bypasses the LLM completely (0 Tokens).
-2.  **Local LLM (Gemma via AMD):** Used for basic questions and brief summarizations.
-3.  **Cloud LLM (Fireworks.ai / Gemini):** Executed only when the user requires in-depth analysis, e.g., *"Compare my running patterns to other runners with knee injuries. What am I doing wrong?"*
+2.  **Cloud Lite LLM (DeepSeek V4 Flash / Gemini 3.1 Flash-Lite):** Used for simple questions, definitions, and basic stats to minimize token costs.
+3.  **Cloud Pro LLM (DeepSeek V4 Pro / Gemini 3.5 Flash):** Executed only when the user requires in-depth coaching advice or complex analysis.
 
 ---
 
@@ -95,7 +93,7 @@ The system is built using **Streamlit** for an interactive, minimalist, yet powe
 │  │ "What should I do next week?"                       │   │
 │  └─────────────────────────────────────────────────────┘   │
 │  → Coach: "Reduce volume by 20%, focus on easy pace..."    │
-│  (Powered by Fireworks.ai / Llama 3)                       │
+│  (Powered by DeepSeek V4 / Gemini 3.5)                     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -114,7 +112,7 @@ The system is built using **Streamlit** for an interactive, minimalist, yet powe
 ### ✅ Phase 2: "The Brain" (LLM Integration)
 *   [x] Setup API Keys for Fireworks.ai and Gemini.
 *   [x] Create *Prompt Engineering* functions that ingest metrics JSON (Risk Score, ACWR, etc.) and compile instructions for the LLM.
-*   [x] Create a simple *Router* function to partition light queries (to local model) and heavy queries (to cloud API).
+*   [x] Create a simple *Router* function to partition light queries (to Cloud Lite LLM) and heavy queries (to Cloud Pro LLM).
 
 ### ✅ Phase 3: Streamlit Dashboard
 *   [x] Initialize `app.py`.
@@ -126,7 +124,7 @@ The system is built using **Streamlit** for an interactive, minimalist, yet powe
     *   `Andrew` (Safe Runner) -> Green metrics, ideal ACWR, positive coaching advice.
     *   `Stephen` (Overtrained Runner) -> Red ACWR (>1.5), high risk of knee/shin injuries.
     *   `Claudia` (Fatigued Runner) -> Safe mileage, but high HR Drift (>10%).
-*   [x] Rehearse pitching narrative, emphasizing token cost savings (hybrid LLM).
+*   [x] Rehearse pitching narrative, emphasizing token cost savings (Hybrid Cloud LLM Routing).
 
 ---
 *This document serves as the main `README.md` for the project repository.*
