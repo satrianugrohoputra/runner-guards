@@ -6,7 +6,10 @@ scratch/secrets.toml
 # Python cache
 __pycache__/
 *.pyc
-*.joblib
+
+# Allow specific joblib models
+!weekly_injury_model.joblib
+!multimodal_injury_model.joblib
 
 # Streamlit cache
 .streamlit/cache/
