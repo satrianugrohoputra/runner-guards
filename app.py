@@ -10,15 +10,29 @@ import brain
 
 def load_keys_from_secrets():
     """
-    Load API keys from .streamlit/secrets.toml (preferred) with
-    graceful fallback to empty strings if not configured.
+    Load API keys from st.secrets supporting both flat and nested structures.
     """
+    gemini = ""
+    fireworks = ""
+    
+    # 1. Try nested structure st.secrets["api_keys"]["..."]
     try:
-        gemini = st.secrets["api_keys"]["GEMINI_API_KEY"]
-        fireworks = st.secrets["api_keys"]["FIREWORKS_API_KEY"]
-        return gemini, fireworks
+        if "api_keys" in st.secrets:
+            gemini = st.secrets["api_keys"].get("GEMINI_API_KEY", "")
+            fireworks = st.secrets["api_keys"].get("FIREWORKS_API_KEY", "")
     except Exception:
-        return "", ""
+        pass
+        
+    # 2. Fallback to top-level st.secrets["..."]
+    try:
+        if not gemini and "GEMINI_API_KEY" in st.secrets:
+            gemini = st.secrets["GEMINI_API_KEY"]
+        if not fireworks and "FIREWORKS_API_KEY" in st.secrets:
+            fireworks = st.secrets["FIREWORKS_API_KEY"]
+    except Exception:
+        pass
+        
+    return gemini, fireworks
 
 
 # Set up page configurations
