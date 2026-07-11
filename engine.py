@@ -4,8 +4,9 @@ import numpy as np
 import pandas as pd
 
 # Load the models
-weekly_model_data = joblib.load('weekly_injury_model.joblib')
-multi_model_data = joblib.load('multimodal_injury_model.joblib')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+weekly_model_data = joblib.load(os.path.join(BASE_DIR, 'weekly_injury_model.joblib'))
+multi_model_data = joblib.load(os.path.join(BASE_DIR, 'multimodal_injury_model.joblib'))
 
 w_model = weekly_model_data['model']
 w_features = weekly_model_data['features']
