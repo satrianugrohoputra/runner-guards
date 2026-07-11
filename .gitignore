@@ -1,0 +1,11 @@
+# Jangan upload file rahasia ini ke GitHub/Git
+.streamlit/secrets.toml
+api_keys.json
+
+# Python cache
+__pycache__/
+*.pyc
+*.joblib
+
+# Streamlit cache
+.streamlit/cache/

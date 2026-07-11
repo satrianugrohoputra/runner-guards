@@ -1,0 +1,90 @@
+--- Testing Gemini ---
+Badge: Gemini gemini-3.5-flash
+Answer:
+Hello! I am **PaceGuard AI**, your sports science and running injury prevention coach. Let's dive straight into your data to understand what is happening with your body and how we can
+
+--- Testing Fireworks DeepSeek V4 Flash ---
+Badge: Fireworks deepseek-v4-flash
+Answer:
+## 🚨 Your ACWR of 1.97: What It Means & Why It’s a Red Flag
+
+Your **Acute-to-Chronic Workload Ratio (ACWR)** is **1.97** — well above the safe upper limit of 1.5. This means your recent training load (the last 7 days) is **nearly double** your average load over the past 4 weeks. When ACWR exceeds 1.5, injury risk spikes sharply. Yours is in the **“Danger Zone”** (≥1.5), and combined with other metrics, it confirms a state of **overtraining**.
+
+**Why so high?**  
+- Your weekly mileage jumped **+35.0%** (from ~48 km to 65 km).  
+- You’re running **6 days/week** with only **1 rest day**, leaving little recovery time.  
+- Your **Recovery Score is 22%** and **Sleep Quality is 4.8/10** — both critically low, meaning your body isn’t repairing from the load.  
+- **HR Drift +12.0%** and **Pace dropping** (5:10 → 4:55/km) show you’re pushing harder without adequate recovery.
+
+---
+
+## 🔍 Most Likely Injury Based on Your Data
+
+Given the high ACWR, low cadence (**152 spm**), and high ground reaction force (**2100 N**), you are at **very high risk** of:
+
+- **Medial Tibial Stress Syndrome (Shin Splints)** – common with rapid mileage increase and low cadence.  
+- **Achilles Tendinopathy** – from repeated high-impact loading without recovery.  
+- **Patellofemoral Pain Syndrome** – due to high GRF and poor running economy from fatigue.
+
+**Your Risk Score is 71/100 (HIGH)** — immediate action is needed.
+
+---
+
+## 📉 7-Day Recovery & Rebuilding Plan
+
+**Goal:** Drop ACWR to ≤1.0, restore recovery, and maintain fitness without injury.
+
+| Day | Activity | Duration / Distance | Intensity | Notes |
+|-----|----------|-------------------|-----------|-------|
+| **Mon** | **Complete rest** | — | — | Sleep 8+ hours, light stretching, no running |
+| **Tue** | Easy jog + drills | 3 km @ 6:00/km | Very easy (RPE 3/10) | Focus on cadence **≥160 spm**, short stride |
+| **Wed** | Cross-train (cycling/swim) | 30 min | Low effort | Keep HR <130 bpm |
+| **Thu** | Easy run | 4 km @ 5:45/km | RPE 4/10 | Monitor HR drift; stop if >5% |
+| **Fri** | Rest or walk | 20 min walk | — | Active recovery |
+| **Sat** | Short run + strides | 3 km easy + 4x20s strides | Easy, strides at 5:00/km | Strides only on soft surface |
+| **Sun** | Long easy run (reduced) | 6 km @ 5:50/km | RPE 5/10 | Keep pace slow; no speed work |
+
+**Total weekly mileage:** ~16 km (75% reduction from current 65 km).  
+**Why this works:**  
+- Lowers acute load to bring ACWR down.  
+- Gives your **Recovery Score (22%)** time to climb.  
+- Increases **cadence** (aim for 160+ spm) to reduce ground reaction force.  
+- Prioritizes **sleep** (target 8h/night) and **stress management** (your stress level is 1% — keep it low!).
+
+---
+
+## 💬 Final Word
+
+Your body is sending a clear SOS — respect the
+
+--- Testing Fireworks DeepSeek V4 Pro ---
+Badge: Fireworks deepseek-v4-pro
+Answer:
+### 🏃‍♂️ ACWR Analysis – What Your 1.97 Means
+
+Your **Acute:Chronic Workload Ratio (ACWR)** compares your training load over the last 7 days (acute) to the average load over the last 28 days (chronic).  
+- **Your ACWR = 1.97** → **DANGER ZONE** (safe is <1.3, risky >1.5).  
+- This means your body is being exposed to **nearly double the workload** it was adapted to just a few weeks ago.  
+- The rapid +35% mileage jump (to 65 km/week) and 6 sessions/week with only 1 rest day have pushed you into **severe overreaching territory**.
+
+### 🔗 How Your Other Metrics Confirm This Red Flag
+- **HR Drift +12%** → Your heart is working harder at the same pace, a classic sign of fatigue and incomplete recovery.  
+- **Recovery Score 22%** → Your body is barely coping; optimal recovery is >70%.  
+- **Sleep Quality 4.8/10** → Poor sleep amplifies injury risk and slows tissue repair.  
+- **Risk Score 71/100** → **HIGH** – your current pattern is unsustainable.  
+- **Pace improved (5:10→4:55/km)** despite fatigue → You’re “borrowing” performance from future health; this often precedes breakdown.
+
+### ⚠️ Most Likely Injury Risk
+Given your **low cadence (152 spm)** and **high ground reaction force (2100 N)**, the overload is landing heavily on your lower limbs. The combination of volume spike + poor recovery makes you highly susceptible to:
+- **Medial Tibial Stress Syndrome (Shin Splints)**  
+- **Patellar Tendinopathy (Jumper’s Knee)**  
+- Early-stage **bone stress injuries** (e.g., tibia or metatarsal stress reaction)
+
+Without immediate load reduction, an injury that stops you running for weeks is almost certain.
+
+### 🗓️ 7-Day Recovery-Focused Training Plan
+Goal: **De-load aggressively**, restore recovery capacity, and preserve fitness without running.
+
+| Day | Activity | Details |
+|-----|----------|---------|
+| **Mon** | Complete Rest | No running. Prioritize sleep (aim 7
