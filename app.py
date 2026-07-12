@@ -218,6 +218,68 @@ html, body, [class*="css"] {
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
 }
 
+/* ── Sidebar Custom Dark Theme (Option A) ── */
+[data-testid="stSidebar"] {
+    background-color: #FC4C02 !important;
+    border-right: 1px solid rgba(52, 152, 219, 0.25) !important;
+}
+
+/* Ensure all labels, texts, and markdown in sidebar are white and readable */
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h1,
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h2,
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3,
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] span,
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] .stMarkdown,
+[data-testid="stSidebar"] p,
+[data-testid="stSidebar"] span,
+[data-testid="stSidebar"] h1,
+[data-testid="stSidebar"] h2,
+[data-testid="stSidebar"] h3 {
+    color: #FFFFFF !important;
+    text-shadow: none !important; /* Remove drop shadow inside sidebar for cleaner look */
+}
+
+/* Style Sidebar Subheaders and Section Titles with Blue Accent */
+[data-testid="stSidebar"] h3, 
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {
+    color: #242428 !important;
+    font-weight: 700 !important;
+    font-size: 1.25rem !important;
+    border-bottom: 1px solid rgba(52, 152, 219, 0.2);
+    padding-bottom: 8px;
+    margin-top: 15px !important;
+}
+
+/* Slider label highlights */
+[data-testid="stSidebar"] .stSlider > label {
+    color: #3498db !important;
+    font-weight: 600 !important;
+}
+
+/* Styling Expanders in Sidebar to fit the glassmorphism theme */
+[data-testid="stSidebar"] .stExpander {
+    background-color: #121f3d !important;
+    border: 1px solid #1c2d54 !important;
+    border-radius: 8px !important;
+    margin-bottom: 10px !important;
+}
+
+/* Number Input custom styling for sidebar */
+[data-testid="stSidebar"] .stNumberInput input {
+    background-color: #121f3d !important;
+    color: #FFFFFF !important;
+    border: 1px solid #1c2d54 !important;
+    border-radius: 5px !important;
+}
+
+/* Radio button selections text color */
+[data-testid="stSidebar"] div[role="radiogroup"] label p {
+    color: #FFFFFF !important;
+}
+
+
 /* =====================================================
    MOBILE RESPONSIVE — Applies ONLY on screens ≤ 768px
    Desktop styles above are completely untouched.
