@@ -126,5 +126,3 @@ The system is built using **Streamlit** for an interactive, minimalist, yet powe
     *   `Claudia` (Fatigued Runner) -> Safe mileage, but high HR Drift (>10%).
 *   [x] Rehearse pitching narrative, emphasizing token cost savings (Hybrid Cloud LLM Routing).
 
----
-*This document serves as the main `README.md` for the project repository.*

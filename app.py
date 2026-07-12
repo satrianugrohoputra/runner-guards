@@ -36,11 +36,12 @@ def load_keys_from_secrets():
 
 
 # Set up page configurations
+ICON_FLATICON_URL = "https://cdn-icons-png.flaticon.com/512/9233/9233133.png"
 st.set_page_config(
     page_title="PaceGuard AI - AI Running Injury Coach",
-    page_icon="🏃",
+    page_icon=ICON_FLATICON_URL,
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 # Custom Styling (Rich dark glassmorphism theme)
@@ -207,7 +208,7 @@ html, body, [class*="css"] {
 .chat-bubble-coach div[style*="font-size: 11px"] span[style*="color: #2ecc71"] * {
     color: #2ecc71 !important;
 }
-/* Cari semua elemen teks Markdown di Streamlit dan berikan drop shadow hitam */
+/* Force all Streamlit markdown text white with readable shadow */
 [data-testid="stMarkdownContainer"] p, 
 [data-testid="stMarkdownContainer"] h1, 
 [data-testid="stMarkdownContainer"] h2, 
@@ -216,10 +217,120 @@ html, body, [class*="css"] {
     color: #FFFFFF !important;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
 }
+
+/* =====================================================
+   MOBILE RESPONSIVE — Applies ONLY on screens ≤ 768px
+   Desktop styles above are completely untouched.
+   ===================================================== */
+@media (max-width: 768px) {
+
+    /* ── Header: scale down font for small screens ── */
+    .main-header {
+        padding: 16px 12px;
+        border-radius: 10px;
+        margin-bottom: 14px;
+    }
+    .main-header h1 {
+        font-size: 1.6rem !important;
+        letter-spacing: -0.5px !important;
+    }
+    .main-header p {
+        font-size: 0.85rem !important;
+    }
+
+    /* ── Cards: reduce padding to save vertical space ── */
+    .glow-card {
+        padding: 14px 12px;
+        border-radius: 10px;
+        margin-bottom: 12px;
+    }
+    /* Disable hover lift effect on touch — it can get "stuck" */
+    .glow-card:hover {
+        transform: none;
+    }
+
+    /* ── Risk Circle: shrink to fit narrow screens ── */
+    .risk-circle {
+        width: 100px;
+        height: 100px;
+    }
+
+    /* ── XAI items: slightly smaller text on mobile ── */
+    .xai-item {
+        font-size: 13px;
+        padding: 8px 12px;
+    }
+
+    /* ── Chat bubbles: go nearly full width on mobile ── */
+    .chat-bubble-user,
+    .chat-bubble-coach {
+        max-width: 96%;
+        padding: 10px 12px;
+    }
+
+    /* ── Force Streamlit horizontal column blocks to stack vertically ──
+       This makes st.columns() responsive on mobile without changing Python code */
+    [data-testid="stHorizontalBlock"] {
+        flex-direction: column !important;
+        gap: 0px !important;
+    }
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 100% !important;
+    }
+
+    /* ── Prevent iOS/Android auto-zoom on form input focus (min 16px) ── */
+    input, textarea, select {
+        font-size: 16px !important;
+    }
+    [data-testid="stTextInput"] input {
+        font-size: 16px !important;
+    }
+
+    /* ── Suggestion chip buttons: bigger tap targets ── */
+    [data-testid="stButton"] button {
+        padding: 10px 14px !important;
+        font-size: 13px !important;
+        width: 100% !important;
+        margin-bottom: 6px !important;
+    }
+
+    /* ── Subheaders: reduce size slightly ── */
+    h2, h3 {
+        font-size: 1.1rem !important;
+    }
+
+    /* ── Stats token row in chat: allow wrapping ── */
+    .chat-bubble-coach div[style*="justify-content: space-between"] {
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+    }
+}
+
+/* Extra-small phones (≤ 480px, e.g. older Android) */
+@media (max-width: 480px) {
+    .main-header h1 {
+        font-size: 1.3rem !important;
+    }
+    .glow-card {
+        padding: 10px 10px;
+    }
+    .risk-circle {
+        width: 85px;
+        height: 85px;
+    }
+    .risk-circle span:first-child {
+        font-size: 1.6rem !important;
+    }
+    .xai-item {
+        font-size: 12px;
+    }
+}
 </style>
 """, unsafe_allow_html=True)
 # Using your chosen Unsplash image ID
-bg_img_url = "https://images.unsplash.com/photo-1502224562085-639556652f33?q=80&w=2070&auto=format&fit=crop"
+bg_img_url = "https://images.unsplash.com/photo-1549896869-ca27eeffe4fb?q=80&w=2070&auto=format&fit=crop"
 
 page_bg_img = f"""
 <style>
@@ -230,6 +341,13 @@ page_bg_img = f"""
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
+}}
+
+/* On mobile, fixed attachment causes flickering/blank in Android WebView */
+@media (max-width: 768px) {{
+    [data-testid="stAppViewContainer"] {{
+        background-attachment: scroll;
+    }}
 }}
 
 /* transparent black overlay for readability */
@@ -251,20 +369,20 @@ st.markdown(page_bg_img, unsafe_allow_html=True)
 # -----------------
 # SIDEBAR CONTROL
 # -----------------
-st.sidebar.title("🏃 PaceGuard Control")
+st.sidebar.title("PaceGuard Control")
 
 # ── Mode Selector ──
 st.sidebar.markdown("### 📊 Analysis Mode")
 input_mode = st.sidebar.radio(
     "Choose how to enter data:",
-    ["🎭 Preset Persona (Demo)", "⚡ Quick Mode (Fast Input)", "🔬 Detail Mode (Full Input)"],
+    ["Preset Persona (Demo)", "Quick Mode (Fast Input)", "Detail Mode (Full Input)"],
     label_visibility="collapsed"
 )
 
 # =============================================================
 # MODE 1: PRESET PERSONA
 # =============================================================
-if input_mode == "🎭 Preset Persona (Demo)":
+if input_mode == "Preset Persona (Demo)":
     st.sidebar.markdown("---")
     st.sidebar.markdown("**Select Runner Scenario:**")
     scenario = st.sidebar.selectbox(
@@ -307,7 +425,7 @@ if input_mode == "🎭 Preset Persona (Demo)":
 # =============================================================
 # MODE 2: QUICK MODE
 # =============================================================
-elif input_mode == "⚡ Quick Mode (Fast Input)":
+elif input_mode == "Quick Mode (Fast Input)":
     st.sidebar.markdown("---")
     st.sidebar.markdown("**⚡ Fill in these 5 key metrics (~30 seconds):**")
     is_quick_mode = True
@@ -477,10 +595,27 @@ metrics_context = {
 # MAIN DASHBOARD UI
 # -----------------
 
-# Glowing header banner
+FLATICON_URL = "https://cdn-icons-png.flaticon.com/512/94/94148.png"
+
+# =====================================================================
+# 1. SET UP PAGE CONFIGURATION (Untuk Ikon di TAB BROWSER)
+# =====================================================================
+st.set_page_config(
+    page_title="PaceGuard AI - AI Running Injury Coach",
+    page_icon=FLATICON_URL,
+    layout="wide",
+    initial_sidebar_state="collapsed"  
+)
+
+# =====================================================================
+# 2. GLOWING HEADER BANNER (Untuk Ikon di UTAMA HALAMAN)
+# =====================================================================
 st.markdown(f"""
 <div class="main-header">
-    <h1 style="margin: 0; font-weight: 700; font-size: 2.8rem; letter-spacing: -1px;">🏃 PaceGuard AI</h1>
+    <h1 style="margin: 0; font-weight: 700; font-size: 2.8rem; letter-spacing: -1px; text-align: center;">
+        <img src="{FLATICON_URL}" style="width: 50px; height: 50px; object-fit: contain; filter: brightness(0) invert(1);"/>
+        PaceGuard AI
+    </h1>
     <p style="margin: 5px 0 0 0; font-size: 1.1rem; opacity: 0.9;">"Train Smart. Run Far. Stay Injury-Free."</p>
 </div>
 """, unsafe_allow_html=True)
@@ -489,7 +624,7 @@ st.markdown(f"""
 if is_quick_mode:
     condition_label = q_condition
     st.info(
-        f"⚡ **Quick Mode Active** — Analysis based on minimal metrics. "
+        f" **Quick Mode Active** — Analysis based on minimal metrics. "
         f"This Week's Km: **{q_km_now:.0f} km** | Condition: **{condition_label}** | "
         f"Biomechanical data is automatically estimated. Accuracy ~70%.",
         icon="⚡"
@@ -672,7 +807,7 @@ with detail_col2:
 # AI COACH ASSISTANT
 # -----------------
 st.markdown("---")
-st.header("🤖 Ask PaceGuard AI Running Coach")
+st.header("Ask PaceGuard AI Running Coach")
 st.write("Get deep analysis, recovery training schedules, or explanations for running-related injuries.")
 
 # Chat history in session state
