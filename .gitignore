@@ -2,14 +2,15 @@
 .streamlit/secrets.toml
 api_keys.json
 scratch/secrets.toml
+paceguardai.MD
 
 # Python cache
 __pycache__/
 *.pyc
 
 # Allow specific joblib models
-!weekly_injury_model.joblib
-!multimodal_injury_model.joblib
+!models/weekly_injury_model.joblib
+!models/multimodal_injury_model.joblib
 
 # Streamlit cache
 .streamlit/cache/

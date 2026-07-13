@@ -49,11 +49,12 @@ print(classification_report(y_test_w, y_pred_w))
 print(f"ROC AUC Score: {roc_auc_score(y_test_w, y_prob_w):.4f}")
 
 # Save Model
+os.makedirs('models', exist_ok=True)
 joblib.dump({
     'model': model_week,
     'features': features_week
-}, 'weekly_injury_model.joblib')
-print("Saved weekly_injury_model.joblib")
+}, 'models/weekly_injury_model.joblib')
+print("Saved models/weekly_injury_model.joblib")
 
 
 # -----------------
@@ -106,5 +107,5 @@ print(classification_report(y_test_m, y_pred_m, target_names=['Healthy', 'Low Ri
 joblib.dump({
     'model': model_multi,
     'features': features_multi
-}, 'multimodal_injury_model.joblib')
-print("Saved multimodal_injury_model.joblib")
+}, 'models/multimodal_injury_model.joblib')
+print("Saved models/multimodal_injury_model.joblib")
