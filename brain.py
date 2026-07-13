@@ -164,8 +164,30 @@ def classify_query(query):
 
 
 # =============================================
-# PROMPT BUILDER — Structured & Grounded
+# PROMPT BUILDER — Structured & Grounded (Advanced Prompt Engineering)
 # =============================================
+def _get_dynamic_tone_instructions(risk_score, acwr):
+    """Dynamically sets coaching tone based on risk and training load."""
+    if risk_score > 65 or acwr > 1.5:
+        return (
+            "🔴 **TONE: URGENT & PROTECTIVE**\n"
+            "The runner is in a CRITICAL injury danger zone. Be direct, authoritative, and firm. "
+            "Prioritize injury prevention and immediate workload reduction above all else. "
+            "Advise strongly against any mileage increases."
+        )
+    elif risk_score > 35 or acwr > 1.3:
+        return (
+            "🟡 **TONE: ADVISORY & CAUTIOUS**\n"
+            "The runner is showing early fatigue signals. Be highly analytical, informative, and encouraging. "
+            "Focus on stabilization, active recovery, and moderate adjustments. Alert them to watch key indicators."
+        )
+    else:
+        return (
+            "🟢 **TONE: POSITIVE & PROGRESSIVE**\n"
+            "The runner has safe metrics. Be encouraging, motivating, and focus on safe progression. "
+            "Highlight the consistency of their metrics and guide them on how to build aerobic volume safely."
+        )
+
 def _build_metrics_prompt(query, metrics):
     risk_score = metrics.get('risk_score', 0.0)
     acwr = metrics.get('acwr', 1.0)
@@ -183,8 +205,25 @@ def _build_metrics_prompt(query, metrics):
                      "Adjust your analysis depth accordingly and inform the runner that for more accurate analysis, "
                      "Detail Mode is recommended.]\n\n")
 
+    tone_instruction = _get_dynamic_tone_instructions(risk_score, acwr)
+
+    # Few-Shot Example
+    few_shot_example = (
+        "=== FEW-SHOT REFERENCE ANALYSIS ===\n"
+        "QUERY: 'My shins hurt during runs, what is going on?'\n"
+        "RESPONSE:\n"
+        "## 🦵 Shin Stress Analysis (Shin Splints)\n"
+        "Based on your metrics, you have a **Risk Score of 68/100 (HIGH)**, and your Ground Reaction Force is extremely high at **2,100 N** combined with a slow cadence of **155 spm**. This indicates overstriding (taking strides that are too long), which significantly increases the impact stress on your tibia bones.\n\n"
+        "### 📋 Recommended Recovery Plan (Next 7 Days):\n"
+        "- **Days 1-3:** Complete rest from running. Focus on cross-training (e.g. 20-30 min easy cycling) and apply ice to the shins for 15 mins twice daily.\n"
+        "- **Days 4-7:** If pain-free, resume very light runs of max 3km, focusing strictly on increasing your cadence to **170-175 spm** to reduce impact force.\n\n"
+        "Keep your head high; adjusting your stride rate is the key to running further and staying injury-free!\n"
+        "====================================\n\n"
+    )
+
     data_block = (
         f"{mode_note}"
+        f"{tone_instruction}\n\n"
         f"=== RUNNER BIOMETRIC DATA ===\n"
         f"Input Mode       : {data_mode} Mode\n"
         f"Weekly Mileage   : {metrics.get('total_kms', 0.0):.1f} km (Growth: {metrics.get('growth', 0.0):+.1f}%)\n"
@@ -197,16 +236,16 @@ def _build_metrics_prompt(query, metrics):
         f"Sleep Quality    : {metrics.get('sleep_quality', 7.0):.1f}/10\n"
         f"Stress Level     : {metrics.get('stress_level', 0.3):.0f}%\n"
         f"Impact (GRF)     : {metrics.get('ground_reaction_force', 1500.0):.0f} N{' (estimated)' if data_mode == 'Quick' else ''}\n"
-        f"Cadence          : {metrics.get('cadence', 160.0):.0f} spm{' (estimated)' if data_mode == 'Quick' else ''}\n"
+        f"Cadence          : {metrics.get('cadence', 160.0):.0f} spm{' (estimated)' if data_mode == 'Quick' else ''}\n\n"
+        f"{few_shot_example}"
         f"=== RUNNER QUESTION ===\n"
         f"{query}\n\n"
-        f"=== ANALYSIS INSTRUCTIONS ===\n"
-        f"1. You MUST use the biometric data above as the foundation for the entire analysis. Do not invent fictitious data.\n"
-        f"2. Connect every recommendation with a specific metric value (state the exact numbers).\n"
-        f"3. Provide a concrete training plan for the next 7 days.\n"
-        f"4. If there is an injury risk, state the most likely specific type of injury based on the data.\n"
-        f"5. Close with a single, personal motivational sentence.\n"
-        f"6. DO NOT write programming code. DO NOT discuss topics outside running and sports science."
+        f"=== ANALYSIS INSTRUCTIONS (CHAIN-OF-THOUGHT) ===\n"
+        f"Follow this step-by-step thinking process to construct your response:\n"
+        f"STEP 1 [Data Evaluation]: Cross-reference the runner's question with the provided biometric metrics. Cite exact numbers.\n"
+        f"STEP 2 [Root Cause Analysis]: Identify the primary metric driver behind their symptoms or risk (e.g. ACWR, Growth, GRF/Cadence mismatch).\n"
+        f"STEP 3 [Action Plan Formulation]: Outline a concrete, detailed 7-day training adjust schedule.\n"
+        f"STEP 4 [Final Review]: Ensure tone matches the dynamic tone instructions. Verify that NO coding/programming or cooking recipes are included.\n"
     )
     return data_block
 
