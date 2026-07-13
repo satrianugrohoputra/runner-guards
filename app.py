@@ -629,8 +629,11 @@ user_metrics_multimodal = {
 }
 
 # Run model predictions
-risk_score = engine.predict_injury_risk_score(user_metrics_weekly)
+risk_score   = engine.predict_injury_risk_score(user_metrics_weekly)
 injury_types = engine.predict_injury_types(user_metrics_multimodal, risk_score)
+
+# Compute SHAP-based XAI explanations (XGBoost model-driven, replaces manual rules)
+shap_xai_points = engine.compute_shap_xai(user_metrics_weekly, top_n=5)
 
 # Package all metrics for the AI coach context
 metrics_context = {
@@ -822,54 +825,70 @@ with detail_col1:
     """, unsafe_allow_html=True)
 
 with detail_col2:
-    st.subheader("💡 Explainable AI (Risk Analysis)")
-    st.write("Key drivers of your running injury risk detected from biomechanics and workload patterns:")
-    
-    # Generate XAI list based on metrics
-    xai_points = []
-    
-    # ACWR point
-    if acwr_val > 1.5:
-        xai_points.append(f"<div class='xai-item xai-danger'>🔴 **ACWR very high ({acwr_val:.2f}):** Acute workload increase is too aggressive, exceeding physical adaptation capacity (Danger Zone).</div>")
-    elif acwr_val > 1.3:
-        xai_points.append(f"<div class='xai-item xai-warn'>🟡 **ACWR slightly high ({acwr_val:.2f}):** You are slightly above the optimal training sweet spot. Exercise caution.</div>")
-    elif acwr_val < 0.8:
-        xai_points.append(f"<div class='xai-item xai-warn'>🟡 **ACWR too low ({acwr_val:.2f}):** Training volume dropped sharply, risking detraining or cardiorespiratory fitness loss.</div>")
-    else:
-        xai_points.append(f"<div class='xai-item xai-ok'>🟢 **ACWR Optimal ({acwr_val:.2f}):** Daily and weekly running volume distribution is perfectly balanced (Sweet Spot).</div>")
-        
-    # Growth point
-    if growth_pct > 15.0:
-        xai_points.append(f"<div class='xai-item xai-danger'>🔴 **Mileage Growth {growth_pct:+.1f}%:** Weekly volume spike exceeds the safe +10% threshold. Tendon tissues are not adapted to this sudden increase.</div>")
-    elif growth_pct > 10.0:
-        xai_points.append(f"<div class='xai-item xai-warn'>🟡 **Mileage Growth {growth_pct:+.1f}%:** Volume growth is slightly above the safe limit. Reduce volume next week.</div>")
-        
-    # HR Drift point
-    if hr_drift_val > 10.0:
-        xai_points.append(f"<div class='xai-item xai-danger'>🔴 **HR Drift High ({hr_drift_val:+.1f}%):** Heart rate rose significantly despite stable/slower pace. Indicates cardiovascular drift, systemic fatigue, or dehydration.</div>")
-    elif hr_drift_val > 5.0:
-        xai_points.append(f"<div class='xai-item xai-warn'>🟡 **HR Drift Moderate ({hr_drift_val:+.1f}%):** Initial signs of cardiovascular drift or running in high ambient temperatures.</div>")
-        
-    # Recovery & sleep point
-    if sleep < 5.5:
-        xai_points.append(f"<div class='xai-item xai-danger'>🔴 **Low Sleep Quality ({sleep:.1f}/10):** Growth Hormone release is disrupted, impairing muscle tissue recovery.</div>")
-    elif recovery < 40.0:
-        xai_points.append(f"<div class='xai-item xai-warn'>🟡 **Low Recovery Score ({recovery:.0f}%):** Post-run recovery is suboptimal. Add an extra rest day to your schedule.</div>")
-        
-    # Biomechanics
-    if grf > 1900.0 and cadence < 160:
-        xai_points.append(f"<div class='xai-item xai-danger'>🔴 **High Impact + Low Cadence:** Low cadence ({cadence} spm) combined with high impact force ({grf:.0f} N) triggers overstriding, putting excess stress on shins (Shin Splints).</div>")
+    st.subheader("💡 Explainable AI (XGBoost + SHAP)")
+    st.write("Top factors driving your injury risk score — ranked by model impact (SHAP values):")
 
-    # Render points
-    for pt in xai_points:
-        st.markdown(pt, unsafe_allow_html=True)
+    # Render SHAP-powered XAI points
+    css_class = {'danger': 'xai-danger', 'warn': 'xai-warn', 'ok': 'xai-ok'}
+    dot_icon  = {'danger': '🔴', 'warn': '🟡', 'ok': '🟢'}
+    arrow_lbl = {'increases_risk': 'raises risk', 'reduces_risk': 'reduces risk'}
+
+    for pt in shap_xai_points:
+        cls   = css_class.get(pt['severity'], 'xai-ok')
+        dot   = dot_icon.get(pt['severity'], '🟢')
+        arrow = arrow_lbl.get(pt['direction'], '')
+        shap_bar_pct = min(int(abs(pt['shap']) * 400), 100)   # scale for visual bar
+        bar_color = '#e74c3c' if pt['direction'] == 'increases_risk' else '#2ecc71'
+        st.markdown(f"""
+        <div class='xai-item {cls}'>
+            {dot} <strong>{pt['feature']}</strong>
+            &nbsp;<span style="font-size:0.8rem; color:#95a5a6;">
+                (value: {pt['value']:.2f} | {arrow} by {abs(pt['shap']):.3f})
+            </span>
+            <div style="margin-top:5px; background:#0f1724; border-radius:4px; height:5px; width:100%;">
+                <div style="width:{shap_bar_pct}%; height:5px; border-radius:4px;
+                     background:{bar_color};"></div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
 
 # -----------------
 # AI COACH ASSISTANT
 # -----------------
+
+# ── 🩹 Recovery Outlook Panel (conditional: shown when risk_score > 40) ──
+if risk_score > 40 and injury_types:
+    st.markdown("---")
+    st.subheader("🩹 Recovery Outlook")
+    st.caption("Based on historical data from 1,000+ athletes — estimated recovery duration and recommended therapy per detected injury.")
+    
+    rec_cols = st.columns(min(len(injury_types), 3))
+    for idx, inj in enumerate(injury_types[:3]):   # show top-3 injuries only
+        rec_plan = engine.estimate_recovery_plan(inj['name'], risk_score)
+        severity_color = {"Severe": "#e74c3c", "Moderate": "#f39c12", "Mild": "#2ecc71"}.get(rec_plan['severity'], "#95a5a6")
+        with rec_cols[idx]:
+            st.markdown(f"""
+            <div class="glow-card" style="text-align:center;">
+                <div style="font-size:1rem; font-weight:600; color:#f1f5f9; margin-bottom:8px;">{inj['name']}</div>
+                <div style="font-size:0.75rem; color:{severity_color}; font-weight:700; margin-bottom:12px;">
+                    {rec_plan['severity'].upper()} SEVERITY
+                </div>
+                <div style="font-size:2rem; font-weight:700; color:#3498db; line-height:1.1;">{int(rec_plan['median_days'])}</div>
+                <div style="font-size:0.8rem; color:#a5b1c2; margin-bottom:12px;">days recovery (median)</div>
+                <div style="border-top:1px solid #2d3b55; padding-top:10px; font-size:0.8rem;">
+                    <div style="color:#95a5a6; margin-bottom:4px;">Best Therapy</div>
+                    <div style="color:#f1f5f9; font-weight:600;">{rec_plan['best_therapy']}</div>
+                </div>
+                <div style="border-top:1px solid #2d3b55; margin-top:10px; padding-top:10px; font-size:0.8rem;">
+                    <div style="color:#95a5a6; margin-bottom:4px;">Recovery Success Rate</div>
+                    <div style="color:#2ecc71; font-weight:700;">{rec_plan['success_rate']}%</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
 st.markdown("---")
-st.header("Ask PaceGuard AI Running Coach")
+st.header("🤖 Ask PaceGuard AI Running Coach")
 st.write("Get deep analysis, recovery training schedules, or explanations for running-related injuries.")
 
 # Chat history in session state

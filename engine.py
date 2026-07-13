@@ -2,17 +2,24 @@ import os
 import joblib
 import numpy as np
 import pandas as pd
+import shap
 
 # Load the models
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 weekly_model_data = joblib.load(os.path.join(BASE_DIR, 'models', 'weekly_injury_model.joblib'))
-multi_model_data = joblib.load(os.path.join(BASE_DIR, 'models', 'multimodal_injury_model.joblib'))
+multi_model_data  = joblib.load(os.path.join(BASE_DIR, 'models', 'multimodal_injury_model.joblib'))
+recovery_model_data = joblib.load(os.path.join(BASE_DIR, 'models', 'recovery_model.joblib'))
 
-w_model = weekly_model_data['model']
+w_model   = weekly_model_data['model']
 w_features = weekly_model_data['features']
 
-m_model = multi_model_data['model']
+m_model   = multi_model_data['model']
 m_features = multi_model_data['features']
+
+r_model         = recovery_model_data['model']
+r_features      = recovery_model_data['features']
+r_lookup        = recovery_model_data['recovery_lookup']   # list of dicts
+r_encoders      = recovery_model_data['label_encoders']
 
 def calculate_acwr(weekly_loads):
     """
@@ -153,3 +160,151 @@ def predict_injury_types(user_features, base_risk_score):
     
     # Sort by probability descending
     return sorted(injuries, key=lambda x: x['prob'], reverse=True)
+
+
+# ------------------------------------------------------------------
+# RECOVERY ESTIMATOR  (Athlete Recovery Dataset)
+# ------------------------------------------------------------------
+# Injury name mapping: display names from predict_injury_types → dataset names
+_INJURY_NAME_MAP = {
+    "Knee Pain (Runner's Knee)": "ACL Tear",       # closest structural knee injury
+    "Shin Splints":              "Sprained Ankle",  # closest impact-stress injury
+    "Hamstring Strain":          "Muscle Strain",
+    "Muscle Cramps":             "Muscle Strain",
+    "Achilles Tendonitis":       "Sprained Ankle",
+}
+
+def estimate_recovery_plan(injury_display_name: str, risk_score: float) -> dict:
+    """
+    Estimate recovery duration and recommended therapy for a detected injury.
+    Returns a dict with:
+      - injury_type (str)     : matched dataset injury type
+      - severity (str)        : estimated severity based on risk_score
+      - median_days (float)   : median recovery days from historical data
+      - best_therapy (str)    : most common successful therapy in dataset
+      - success_rate (float)  : % of cases that recovered fully
+    """
+    # Strip emoji prefix (e.g. "🦵 Knee Pain (Runner's Knee)" → "Knee Pain (Runner's Knee)")
+    clean_name = injury_display_name.strip()
+    for prefix in ['🦵 ', '💪 ', '🦶 ']:
+        clean_name = clean_name.replace(prefix, '')
+
+    # Map to dataset injury type
+    dataset_injury = _INJURY_NAME_MAP.get(clean_name, "Muscle Strain")
+
+    # Estimate severity from risk_score
+    if risk_score >= 65:
+        severity = "Severe"
+    elif risk_score >= 35:
+        severity = "Moderate"
+    else:
+        severity = "Mild"
+
+    # Look up in pre-computed lookup table
+    match = next(
+        (row for row in r_lookup
+         if row['Injury_Type'] == dataset_injury and row['Injury_Severity'] == severity),
+        None
+    )
+
+    # Fallback: any severity match
+    if match is None:
+        match = next(
+            (row for row in r_lookup if row['Injury_Type'] == dataset_injury),
+            {'median_recovery_days': 14.0, 'best_therapy': 'Stretching'}
+        )
+
+    # Compute success rate from raw data
+    raw = recovery_model_data.get('raw_data', [])
+    relevant = [
+        r for r in raw
+        if r['Injury_Type'] == dataset_injury and r['Injury_Severity'] == severity
+    ]
+    success_rate = (
+        sum(1 for r in relevant if r['Recovery_Success'] == 1) / len(relevant) * 100
+        if relevant else 55.0
+    )
+
+    return {
+        'injury_type':   dataset_injury,
+        'severity':      severity,
+        'median_days':   float(match['median_recovery_days']),
+        'best_therapy':  str(match['best_therapy']),
+        'success_rate':  round(success_rate, 1)
+    }
+
+
+# ------------------------------------------------------------------
+# SHAP — Explainable AI  (XGBoost-powered, replaces manual rules)
+# ------------------------------------------------------------------
+# Build SHAP explainer once at module load (fast for XGBoost TreeExplainer)
+_shap_explainer_weekly = shap.TreeExplainer(w_model)
+
+# Human-readable labels for feature names
+_FEATURE_LABELS = {
+    'total kms':                        'Total Weekly Km',
+    'nr. sessions':                     'Training Sessions',
+    'nr. rest days':                    'Rest Days',
+    'max km one day':                   'Max Km in 1 Day',
+    'nr. strength trainings':           'Strength Sessions',
+    'total hours alternative training': 'Alt. Training Hours',
+    'avg exertion':                     'Avg Exertion Level',
+    'avg recovery':                     'Avg Recovery Level',
+    'avg training success':             'Training Success',
+    'rel total kms week 0_1':           'Load Ratio W0/W1',
+    'rel total kms week 0_2':           'Load Ratio W0/W2',
+    'rel total kms week 1_2':           'Load Ratio W1/W2',
+}
+
+
+def compute_shap_xai(user_features: dict, top_n: int = 5) -> list[dict]:
+    """
+    Compute SHAP values for the weekly injury model given the user's features.
+
+    Returns a list of dicts (sorted by absolute impact, descending):
+      {
+        'feature':   str,   # human-readable feature name
+        'value':     float, # actual user value for that feature
+        'shap':      float, # SHAP contribution to risk score
+        'direction': str,   # 'increases_risk' | 'reduces_risk'
+        'severity':  str,   # 'danger' | 'warn' | 'ok'
+      }
+    Only the top_n most impactful features are returned.
+    """
+    # Build input row in the correct feature order
+    row = {feat: float(user_features.get(feat, 0.0)) for feat in w_features}
+    df_row = pd.DataFrame([row])
+
+    # Compute SHAP values (class 1 = injured)
+    shap_values = _shap_explainer_weekly.shap_values(df_row)
+
+    # shap_values shape: (1, n_features) — already for the positive class
+    if isinstance(shap_values, list):
+        # binary XGBoost sometimes returns list[neg_shap, pos_shap]
+        sv = shap_values[1][0]
+    else:
+        sv = shap_values[0]
+
+    results = []
+    for feat, sv_val in zip(w_features, sv):
+        label     = _FEATURE_LABELS.get(feat, feat)
+        direction = 'increases_risk' if sv_val > 0 else 'reduces_risk'
+        abs_val   = abs(sv_val)
+        # Severity based on magnitude of contribution
+        if abs_val > 0.15:
+            severity = 'danger'
+        elif abs_val > 0.06:
+            severity = 'warn'
+        else:
+            severity = 'ok'
+        results.append({
+            'feature':   label,
+            'value':     float(row[feat]),
+            'shap':      float(sv_val),
+            'direction': direction,
+            'severity':  severity,
+        })
+
+    # Sort by absolute SHAP value descending
+    results.sort(key=lambda x: abs(x['shap']), reverse=True)
+    return results[:top_n]

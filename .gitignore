@@ -11,6 +11,7 @@ __pycache__/
 # Allow specific joblib models
 !models/weekly_injury_model.joblib
 !models/multimodal_injury_model.joblib
+!models/recovery_model.joblib
 
 # Streamlit cache
 .streamlit/cache/
